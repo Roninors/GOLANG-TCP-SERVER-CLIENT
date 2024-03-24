@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strings"
 )
 
 func main() {
@@ -32,15 +33,20 @@ func handleClient(con net.Conn) {
 	for {
 		message, err := con.Read(buffer)
 		if err != nil {
-            if err == io.EOF{
-                             
-			fmt.Println("client disconnected ")
-            return
-            }
+			if err == io.EOF {
+
+				fmt.Println("client disconnected ")
+				return
+			}
 			fmt.Println("error reading buffer: ", err)
 			return
 		}
 
-		fmt.Printf("Recieved, %s\n", buffer[:message])
+		fmt.Printf("Recieved, %s\n", strings.TrimSpace(string(buffer[:message])))
+		_, err = con.Write([]byte(buffer[:message]))
+		if err != nil {
+			fmt.Println("error writing to client: ", err)
+			return
+		}
 	}
 }
