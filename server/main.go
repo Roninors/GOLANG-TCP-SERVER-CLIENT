@@ -3,8 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"strings"
+	"sync"
+)
+
+var (
+	mut           sync.Mutex
+	listOfClients []*net.TCPConn
 )
 
 func main() {
@@ -22,6 +29,12 @@ func main() {
 			fmt.Println("error accepting connection: ")
 			continue
 		}
+		tcpConn := con.(*net.TCPConn)
+		tcpConn.SetKeepAlive(true)
+		tcpConn.SetNoDelay(true)
+		mut.Lock()
+		listOfClients = append(listOfClients, tcpConn)
+		mut.Unlock()
 		go handleClient(con)
 	}
 
@@ -44,9 +57,17 @@ func handleClient(con net.Conn) {
 
 		fmt.Printf("Recieved, %s\n", strings.TrimSpace(string(buffer[:message])))
 		_, err = con.Write([]byte(buffer[:message]))
+		broadcast(string(buffer[:message]))
+	}
+}
+
+func broadcast(message string) {
+	mut.Lock()
+	defer mut.Unlock()
+	for _, client := range listOfClients {
+		_, err := client.Write([]byte(message))
 		if err != nil {
-			fmt.Println("error writing to client: ", err)
-			return
+			log.Printf("Error broadcasting message: %+v", err.Error())
 		}
 	}
 }

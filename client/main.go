@@ -17,7 +17,17 @@ func main() {
 	}
 	defer con.Close()
     	connReader := bufio.NewReader(con)
-
+    go func(){
+       for{
+        
+        serverReply,err := connReader.ReadString('\n')
+        if err != nil {
+            fmt.Println("error occured during reading server reply: ",err)
+            return
+        } 
+        fmt.Println("server reply: ",strings.TrimSpace(serverReply))
+       } 
+    }()
 	for {
 
 		fmt.Println("Send server a message: ")
@@ -33,12 +43,6 @@ func main() {
 			return
 		}
 
-        serverReply,err := connReader.ReadString('\n')
-        if err != nil {
-            fmt.Println("error occured during reading server reply: ",err)
-            return
-        } 
-        fmt.Println("server reply: ",strings.TrimSpace(serverReply))
 	}
 
 }
