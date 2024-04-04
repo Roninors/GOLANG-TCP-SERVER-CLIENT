@@ -56,14 +56,11 @@ func handleClient(con net.Conn) {
 		}
 
 		fmt.Printf("Recieved, %s\n", strings.TrimSpace(string(buffer[:message])))
-		_, err = con.Write([]byte(buffer[:message]))
 		broadcast(string(buffer[:message]))
 	}
 }
 
 func broadcast(message string) {
-	mut.Lock()
-	defer mut.Unlock()
 	for _, client := range listOfClients {
 		_, err := client.Write([]byte(message))
 		if err != nil {
