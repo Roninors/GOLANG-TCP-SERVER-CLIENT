@@ -47,7 +47,6 @@ func handleClient(con net.Conn) {
 		message, err := con.Read(buffer)
 		if err != nil {
 			if err == io.EOF {
-
 				fmt.Println("client disconnected ")
 				return
 			}
